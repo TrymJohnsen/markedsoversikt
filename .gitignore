@@ -2,6 +2,9 @@
 __pycache__/
 *.py[codz]
 *$py.class
+# Python cache
+*.pyc
+
 
 # C extensions
 *.so
@@ -205,3 +208,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local data (do not commit)
+data/*
+!data/.gitkeep
+
+#OS noise
+.DS_Store
+.vscode/
