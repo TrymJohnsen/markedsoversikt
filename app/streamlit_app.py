@@ -117,6 +117,8 @@ else:
                     go.Bar(
                         x=df.index,
                         y=df["Volume"],
+                        marker=dict(color="rgba(150,150,150,0.25)"),
+                        opacity=0.3,
                         name="Volum",
                         hovertemplate="Dato=%{x}<br>Volum=%{y:,}<extra></extra>",
                     ), row = 2, col=1
@@ -129,6 +131,18 @@ else:
             template="plotly_dark",
             margin=dict(l=20, r=20, t=40, b=20),
             showlegend=True
+        )
+        
+        # horisontal divider mellom pris og volum
+        fig.add_shape(
+            type = "line",
+            x0 = 0,
+            x1 = 1,
+            y0 = 0.25,
+            y1 = 0.25,
+            xref = "paper",
+            yref = "paper",
+            line = dict(color="gray", width=1, dash="dash")
         )
 
         #aksetitler
