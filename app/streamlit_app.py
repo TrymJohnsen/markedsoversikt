@@ -5,7 +5,7 @@ from plotly.subplots import make_subplots
 
 from src.providers.yahoo import get_snapshot, get_price_history, get_fundamentals
 from app.views.overview import render_overview
-# from app.views.technical import render_technical
+from app.views.technical import render_technical
 # from app.views.fundamentals import render_fundamentals
 # from app.views.notes import render_notes
 
