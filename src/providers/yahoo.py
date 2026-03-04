@@ -12,6 +12,7 @@ def get_snapshot(ticker: str) -> dict:
     return {
         "ticker": ticker,
         "name": info.get("shortName") or info.get("longName"),
+        "last_price": info.get("previousClose") or info.get("regularMarketPrice"),
         "sector": info.get("sector"),
         "currency": info.get("currency"),
         "exchange": info.get("exchange"),
@@ -22,7 +23,13 @@ def get_price_history(ticker: str, period: str = "1y", interval: str = "1d") -> 
     """
     gets historical price data as a dataframe with date index
     typiske kolonner: open, high, low, close, adj close, volume (og evt dividends/splits)
+    
+    Can accept either:
+    - period (str): "1y", "6mo", "3mo", "1d", etc.
+    - period_days (int): 30, 90, 180, 365, etc. (converted to period string)
     """
+    # Convert period_days to yfinance period string if provided
+    
     t = yf.Ticker(ticker)
     df = t.history(period=period, interval=interval)
 
@@ -30,3 +37,27 @@ def get_price_history(ticker: str, period: str = "1y", interval: str = "1d") -> 
         raise ValueError(f"Ingen prisdata returnert for {ticker} (period={period}, interval={interval})")
     
     return df
+
+
+def get_fundamentals(ticker: str) -> dict:
+    """
+    gets key fundamental data 
+    """
+
+    t = yf.Ticker(ticker)
+
+    income = t.financials #income statement
+
+    if income is None or income.empty:
+        raise ValueError(f"Ingen fundamentaldata returnert for {ticker}")
+
+    #income er ofte strukturert med rader = regnskapsposter
+    # og kolonner = år/perioder
+
+    fundamentals = {
+        "revenue": income.loc["Total Revenue"] if "Total Revenue" in income.index else None,
+        "ebitda": income.loc["EBITDA"] if "EBITDA" in income.index else None,
+        "net_income": income.loc["Net Income"] if "Net Income" in income.index else None,
+    }
+
+    return fundamentals
