@@ -21,30 +21,27 @@ def get_snapshot(ticker: str) -> dict:
 
 
 
-def period_to_timedelta(period: str) -> pd.Timedelta:
+def period_to_Offset(period: str):
     """
     Konverterer yfinance-perioder til en offset/timedelta for å finne start_display som brukes i sma beregning.
     Støtter typiske: 1mo, 3mo, 6mo, 1y, 3y, 5y, 1d, 5d
     """
     period = period.strip().lower()
 
-    #dager
     if period.endswith("d"):
         n = int(period[:-1])
-        return pd.Timedelta(days=n)
-    #måneder
+        return pd.DateOffset(days=n)
     elif period.endswith("mo"):
         n = int(period[:-2])
-        return pd.Timedelta(months=n)  
-    #år
+        return pd.DateOffset(months=n)  
     elif period.endswith("y"):
         n = int(period[:-1])
-        return pd.Timedelta(year=n) 
+        return pd.DateOffset(years=n) 
     else:
         raise ValueError(f"Ugyldig periodeformat: {period}")
     
     
-def buffer_offset(interval: str, buffer_points: int) -> pd.Timedelta:
+def buffer_offset(interval: str, buffer_points: int):
     """
     Beregner en buffer for å sikre at vi har nok data for SMA-beregning, basert på intervallet.
     f.eks. for 1d interval og 200 SMA, trenger vi minst 200 datapunkter, så en buffer på 300 dager kan være fornuftig.
@@ -53,39 +50,44 @@ def buffer_offset(interval: str, buffer_points: int) -> pd.Timedelta:
 
     if interval == "1d":
         #business dager, så vi legger til ekstra for helger/ferier
-        return pd.tseries.offsets.BDay(buffer_points)
-    
+        return pd.tseries.offsets.BDay(buffer_points+30)
     if interval == "1wk":
-        return pd.DateOffset(weeks=buffer_points)
-    
+        return pd.DateOffset(weeks=buffer_points+4)
     if interval == "1mo":
-        return pd.DateOffset(months=buffer_points)
-    
+        return pd.DateOffset(months=buffer_points+2)
     raise ValueError(f"Ugyldig interval: {interval}")
 
     
-def get_price_history(ticker: str, period: str = "1y", interval: str = "1d", extra_points: int = 220) -> tuple[pd.DataFrame,pd.DataFrame,dict]:
+def get_price_history(
+    ticker: str,
+    period: str = "1y",
+    interval: str = "1d",
+    sma_windows: tuple[int, ...] = (50, 200),
+) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     """
     Returnerer:
     df_plot: klippet til valgt period (det du viser)
-    df_full: inneholder extra_points datapunkter før start (for SMA osv.)
+    df_full: inneholder warmup-datapunkter før start (for SMA osv.)
     meta: nyttige tider/info
     """
     
-    end_display = pd.Timestamp.now(tz=None)
+    end_display = pd.Timestamp.now(tz=None) 
+    start_display = end_display - period_to_Offset(period)
 
-    period_off = period_to_timedelta(period)
-    start_display = end_display - period_off
+    valid_windows = [w for w in sma_windows if isinstance(w, int) and w > 0]
+    warmup_points = max(valid_windows) - 1 if valid_windows else 0
+    
+    start_fetch = start_display - buffer_offset(interval, warmup_points)
 
-    buffer_off = buffer_offset(interval, extra_points)
-    start_fetch = start_display - buffer_off
-
-    t = yf.Ticker(ticker)
-
-    df_full = t.history(start = start_fetch, end = end_display, interval=interval)
+    df_full = yf.Ticker.history(start = start_fetch, end = end_display, interval=interval) #nok data for SMA beregning
 
     if df_full is None or df_full.empty:
         raise ValueError(f"Ingen prisdata returnert for {ticker} (start={start_fetch}, end={end_display}, interval={interval})")
+
+    # yfinance returnerer ofte tz-aware DatetimeIndex; normaliser til tz-naive
+    # siden start/end i denne funksjonen er tz-naive.
+    if isinstance(df_full.index, pd.DatetimeIndex) and df_full.index.tz is not None:
+        df_full.index = df_full.index.tz_localize(None)
     
     df_plot = df_full.loc[start_display:end_display].copy()
 
@@ -93,9 +95,12 @@ def get_price_history(ticker: str, period: str = "1y", interval: str = "1d", ext
         "start_fetch": start_fetch,
         "start_display": start_display,
         "end_display": end_display,
-        "extra_points": extra_points,
+        "warmup_points": warmup_points,
+        "display_points": len(df_plot),
+        "fetched_points": len(df_full),
         "interval": interval,
         "period": period,
+        "sma_windows": tuple(valid_windows),
     }
 
     return df_plot, df_full, meta
