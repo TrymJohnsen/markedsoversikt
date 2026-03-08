@@ -64,26 +64,41 @@ def buffer_offset(interval: str, buffer_points: int) -> pd.Timedelta:
     raise ValueError(f"Ugyldig interval: {interval}")
 
     
-def get_price_history(ticker: str, period: str = "1y", interval: str = "1d", extra_points: int = 220) -> pd.DataFrame:
+def get_price_history(ticker: str, period: str = "1y", interval: str = "1d", extra_points: int = 220) -> tuple[pd.DataFrame,pd.DataFrame,dict]:
     """
-    gets historical price data as a dataframe with date index
-    typiske kolonner: open, high, low, close, adj close, volume (og evt dividends/splits)
+    Returnerer:
+    df_plot: klippet til valgt period (det du viser)
+    df_full: inneholder extra_points datapunkter før start (for SMA osv.)
+    meta: nyttige tider/info
+    """
     
-    Can accept either:
-    - period (str): "1y", "6mo", "3mo", "1d", etc.
-    - period_days (int): 30, 90, 180, 365, etc. (converted to period string)
-    """
-    # Convert period_days to yfinance period string if provided
+    end_display = pd.Timestamp.now(tz=None)
+
+    period_off = period_to_timedelta(period)
+    start_display = end_display - period_off
+
+    buffer_off = buffer_offset(interval, extra_points)
+    start_fetch = start_display - buffer_off
 
     t = yf.Ticker(ticker)
-    df = t.history(period=period, interval=interval)
-    df_sma200 = t.history(period=, interval=interval)
 
-    if df is None or df.empty:
-        raise ValueError(f"Ingen prisdata returnert for {ticker} (period={period}, interval={interval})")
+    df_full = t.history(start = start_fetch, end = end_display, interval=interval)
+
+    if df_full is None or df_full.empty:
+        raise ValueError(f"Ingen prisdata returnert for {ticker} (start={start_fetch}, end={end_display}, interval={interval})")
     
-    return df,
+    df_plot = df_full.loc[start_display:end_display].copy()
 
+    meta = {
+        "start_fetch": start_fetch,
+        "start_display": start_display,
+        "end_display": end_display,
+        "extra_points": extra_points,
+        "interval": interval,
+        "period": period,
+    }
+
+    return df_plot, df_full, meta
 
 
 

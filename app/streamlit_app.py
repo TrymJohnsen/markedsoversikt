@@ -41,7 +41,7 @@ with st.form("search_form"):
 if submitted:
     try:
         snap = get_snapshot(ticker)
-        hist = get_price_history(ticker, period=days, interval=interval)
+        hist_plot,hist_sma200 = get_price_history(ticker, period=days, interval=interval)
         st.session_state["active"] = {
             "ticker": ticker,
             "days": days,
