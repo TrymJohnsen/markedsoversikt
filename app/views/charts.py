@@ -1,5 +1,6 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import streamlit as st
 
 def build_price_fig(hist, currency, chart_type: str, show_volume=True, show_legend=True):
     df = hist.copy().sort_index()  # sørg for at data er sortert etter dato
