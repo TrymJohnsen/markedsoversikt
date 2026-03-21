@@ -30,7 +30,7 @@ with st.form("search_form"):
     with col1:
         ticker = st.text_input("Ticker", value="AAPL").strip().upper()
     with col2:
-        days = st.selectbox("Historikk", options=["5y","3y","1y", "6mo", "3mo", "1mo"], index=2)
+        days = st.selectbox("Historikk", options=["max", "5y", "3y", "1y", "6mo", "3mo", "1mo"], index=3)
     with col3:
         interval = st.selectbox("Interval", options=["1d", "1wk", "1mo"], index=1)
 
