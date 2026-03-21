@@ -25,8 +25,8 @@ def render_overview(active):
             return f"{value:.0f}"
         
     # --- Snapshot KPIs ---
-    k4, k3, k2, k1 = st.columns(4)
-    k4.metric("Navn", snap.get("name", ""))
+    st.subheader(snap.get("name", snap.get("ticker", "")))
+    k3, k2, k1 = st.columns(3)
     k3.metric("Markedsverdi", f"{format_financial(snap.get('market_cap'))}")
     k2.metric("Valuta", snap.get("currency"))
     k1.metric("Siste pris", snap.get("last_price"))
