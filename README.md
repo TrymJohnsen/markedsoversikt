@@ -11,7 +11,7 @@ Et enkelt prosjekt for å utforske/lære om aksje- og markedsdata.
 ## Kom i gang
 1. Opprett og aktiver venv
 2. Installer dependencies 
-3. pass på at PATH er satt slik at python i venv brukes først 
+3. pass på at PATH er satt slik at python i venv brukes først (source venv/scripts/activate for meg)
 4. kjør python -m streamlit run app/streamlit_app.py
 
 ## slette cache
