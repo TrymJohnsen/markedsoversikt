@@ -79,7 +79,7 @@ def get_price_history(
     
     start_fetch = start_display - buffer_offset(interval, warmup_points)
 
-    df_full = yf.Ticker.history(start = start_fetch, end = end_display, interval=interval) #nok data for SMA beregning
+    df_full = yf.Ticker(ticker).history(start = start_fetch, end = end_display, interval=interval) #nok data for SMA beregning
 
     if df_full is None or df_full.empty:
         raise ValueError(f"Ingen prisdata returnert for {ticker} (start={start_fetch}, end={end_display}, interval={interval})")
