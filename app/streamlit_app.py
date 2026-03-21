@@ -37,8 +37,8 @@ if "watchlist" not in st.session_state:
     st.session_state["watchlist"] = [] #enkel watchlist som kan brukes til Ã¥ lagre tick feks ["AAPL", "MSFT"]
 if "notes" not in st.session_state:
     st.session_state["notes"] = {} #enkel struktur for Ã¥ lagre notater per ticker, feks {"AAPL": "Dette er Apple..."}
-if "search_ticker" not in st.session_state:
-    st.session_state["search_ticker"] = "AAPL"
+# if "search_ticker" not in st.session_state:
+#     st.session_state["search_ticker"] = "AAPL"
 if "search_days" not in st.session_state:
     st.session_state["search_days"] = "1y"
 if "search_interval" not in st.session_state:
@@ -49,7 +49,7 @@ view = st.sidebar.radio("Analyse", ["Oversikt", "Teknisk", "Fundamentals", "Nota
 # --- Input ---
 col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
 with col1:
-    st.text_input("Ticker", key="search_ticker")
+    st.text_input("Ticker", key="search_ticker", placeholder="F.eks. AAPL", on_change=lambda: st.session_state.update(search_ticker=st.session_state["search_ticker"].strip().upper()))
 with col2:
     st.selectbox("Historikk", options=PERIOD_OPTIONS, key="search_days", on_change=sync_interval_to_period)
 with col3:
@@ -66,7 +66,6 @@ if submitted:
         ticker = st.session_state["search_ticker"].strip().upper()
         days = st.session_state["search_days"]
         interval = st.session_state["search_interval"]
-        st.session_state["search_ticker"] = ticker
 
         snap = get_snapshot(ticker)
         hist, hist_sma, meta = get_price_history(ticker, period=days, interval=interval)
