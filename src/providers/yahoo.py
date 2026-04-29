@@ -2,22 +2,61 @@ import pandas as pd
 import yfinance as yf
 
 
+def get_ai_exposure_label(sector: str | None, industry: str | None) -> str:
+    sector = (sector or "").lower()
+    industry = (industry or "").lower()
+
+    ai_core = {"semiconductors", "semiconductor", "hardware"}
+    ai_user = {"software", "cloud", "internet", "artificial intelligence", "machine learning", "data"}
+    ai_indirect = {"utilities", "real estate", "infrastructure", "electric"}
+
+    if any(k in industry for k in ai_core) or any(k in sector for k in ai_core):
+        return "KI-kjernespiller"
+    if any(k in industry for k in ai_user) or any(k in sector for k in ai_user) or "technology" in sector:
+        return "KI-bruker"
+    if any(k in industry for k in ai_indirect) or any(k in sector for k in ai_indirect):
+        return "Indirekte eksponering"
+    return "Ikke KI-relevant"
+
+
 def get_snapshot(ticker: str) -> dict:
     """
-    Return a small snapshot with key info.
+    Return a snapshot with key info and fundamentals for signal calculations.
     Yahoo is not always consistent, so .get is used to avoid KeyErrors.
     """
     t = yf.Ticker(ticker)
     info = t.info or {}
 
+    sector = info.get("sector")
+    industry = info.get("industry")
+
     return {
         "ticker": ticker,
         "name": info.get("shortName") or info.get("longName"),
+        "description": info.get("longBusinessSummary"),
         "last_price": info.get("previousClose") or info.get("regularMarketPrice"),
-        "sector": info.get("sector"),
+        "sector": sector,
+        "industry": industry,
         "currency": info.get("currency"),
         "exchange": info.get("exchange"),
         "market_cap": info.get("marketCap"),
+        "ai_exposure": get_ai_exposure_label(sector, industry),
+        # Verdsettelse
+        "pe_ratio": info.get("trailingPE"),
+        "ps_ratio": info.get("priceToSalesTrailing12Months"),
+        "pb_ratio": info.get("priceToBook"),
+        # Vekst og lønnsomhet
+        "revenue_growth": info.get("revenueGrowth"),
+        "gross_margins": info.get("grossMargins"),
+        "profit_margins": info.get("profitMargins"),
+        "return_on_equity": info.get("returnOnEquity"),
+        # Soliditet
+        "debt_to_equity": info.get("debtToEquity"),
+        "current_ratio": info.get("currentRatio"),
+        "free_cashflow": info.get("freeCashflow"),
+        # KI-relevant
+        "rd_expenses": info.get("researchAndDevelopment"),
+        "total_revenue": info.get("totalRevenue"),
     }
 
 
