@@ -3,8 +3,8 @@ import streamlit as st
 from src.providers.yahoo import get_fundamentals, get_price_history, get_snapshot
 from app.views.overview import render_overview
 from app.views.technical import render_technical
-# from app.views.fundamentals import render_fundamentals
-# from app.views.notes import render_notes
+from app.views.fundamentals import render_fundamentals
+from app.views.notes import render_notes
 
 PERIOD_OPTIONS = ["max", "5y", "3y", "1y", "6mo", "3mo", "1mo"]
 INTERVAL_OPTIONS = ["1d", "1wk", "1mo"]
@@ -28,7 +28,7 @@ def sync_interval_to_period():
 st.set_page_config(page_title="Markedsoversikt", layout="wide")
 
 st.title("Markedsoversikt")
-st.caption("Søk på ticker og se siste pris, fundamentals og enkel prisgraf.")
+st.caption("Søk på en aksje og analyser den som langsiktig investor. Se signaler, nøkkeltall og lær hva de betyr.")
 
 # minnet til appen
 if "active" not in st.session_state:
@@ -44,7 +44,7 @@ if "search_days" not in st.session_state:
 if "search_interval" not in st.session_state:
     st.session_state["search_interval"] = default_interval_for_period(st.session_state["search_days"])
 
-view = st.sidebar.radio("Analyse", ["Oversikt", "Teknisk", "Fundamentals", "Notater/Watchlist"])
+view = st.sidebar.radio("Analyse", ["Oversikt", "Signaler", "Fundamentals", "Notater/Watchlist"])
 
 # --- Input ---
 col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
@@ -94,7 +94,7 @@ active = st.session_state["active"]
 
 if view == "Oversikt":
     render_overview(active)
-elif view == "Teknisk":
+elif view == "Signaler":
     render_technical(active)
 elif view == "Fundamentals":
     render_fundamentals(active)
